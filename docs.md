@@ -50,7 +50,8 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-aps-sdk = { path = "../APS/sdk" }
+# Репозиторий SDK лежит рядом с репозиторием плагина:
+aps-sdk = { path = "../APS-SDK" }
 # или
 # aps-sdk = { git = "https://github.com/skytr1x/APS-SDK", branch = "main" }
 
@@ -58,6 +59,8 @@ aps-sdk = { path = "../APS/sdk" }
 panic = "abort"
 opt-level = "s"
 ```
+
+`path` указывает на корень репозитория SDK, где лежит `Cargo.toml`. Имя папки зависит от того, как вы склонировали репозиторий.
 
 `panic = "abort"` обязателен: паника завершает WASM-экземпляр.
 
