@@ -1,0 +1,5 @@
+docs/
+graphify-out/
+.venv/
+for-vibecoders
+tests/

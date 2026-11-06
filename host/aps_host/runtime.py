@@ -1,14 +1,15 @@
 import threading
 
-from .constants import ABI_VERSION
+from .constants import ABI_VERSION, BRIDGE_VERSION
 from .engine import WasmModule
 from .errors import HostError
 
 
 class Runtime:
-    def __init__(self, store, loader=None):
+    def __init__(self, store, loader=None, bridge=None):
         self.store = store
         self.loader = loader or WasmModule
+        self.bridge = bridge
         self.modules = {}
         self.lock = threading.RLock()
 
@@ -19,9 +20,13 @@ class Runtime:
                 return
             if not self.store.has_file(plugin_id):
                 raise HostError('err_plugin_file_missing')
-            instance = self.loader(path)
+            bridge = self.bridge(plugin_id) if self.bridge is not None else None
+            instance = self.loader(path, bridge)
             if instance.exec('aps_abi_version', []) != ABI_VERSION:
                 raise HostError('err_abi')
+            if instance.has('aps_bridge_version'):
+                if instance.exec('aps_bridge_version', []) != BRIDGE_VERSION:
+                    raise HostError('err_abi')
             if instance.exec('aps_on_load', []) != 0:
                 raise HostError('err_load_failed')
             self.modules[plugin_id] = instance

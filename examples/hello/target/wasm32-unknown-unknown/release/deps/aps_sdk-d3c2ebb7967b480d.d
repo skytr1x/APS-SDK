@@ -1,0 +1,14 @@
+/home/skytr1x/Documents/Projects/exteraGram Plugins/APS/sdk/examples/hello/target/wasm32-unknown-unknown/release/deps/aps_sdk-d3c2ebb7967b480d.d: /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/lib.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/base_plugin.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/bridge.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/client.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/logger.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/settings.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/ui.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/metadata.rs
+
+/home/skytr1x/Documents/Projects/exteraGram Plugins/APS/sdk/examples/hello/target/wasm32-unknown-unknown/release/deps/libaps_sdk-d3c2ebb7967b480d.rlib: /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/lib.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/base_plugin.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/bridge.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/client.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/logger.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/settings.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/ui.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/metadata.rs
+
+/home/skytr1x/Documents/Projects/exteraGram Plugins/APS/sdk/examples/hello/target/wasm32-unknown-unknown/release/deps/libaps_sdk-d3c2ebb7967b480d.rmeta: /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/lib.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/base_plugin.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/bridge.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/client.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/logger.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/settings.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/ui.rs /home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/metadata.rs
+
+/home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/lib.rs:
+/home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/base_plugin.rs:
+/home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/bridge.rs:
+/home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/client.rs:
+/home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/logger.rs:
+/home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/settings.rs:
+/home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/ui.rs:
+/home/skytr1x/Documents/Projects/exteraGram\ Plugins/APS/sdk/src/metadata.rs:

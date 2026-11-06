@@ -1,3 +1,4 @@
+from .bridge import Bridge
 from .constants import FLAG_PREFIX
 from .events import event_code
 from .runtime import Runtime
@@ -6,11 +7,14 @@ from .store import Store
 
 class Host:
     def __init__(self, home, get_setting, set_setting, logger=None, loader=None):
-        self.store = Store(home)
-        self.runtime = Runtime(self.store, loader)
         self.get_setting = get_setting
         self.set_setting = set_setting
         self.logger = logger
+        self.store = Store(home)
+        self.runtime = Runtime(self.store, loader, self._bridge)
+
+    def _bridge(self, plugin_id):
+        return Bridge(plugin_id, self.get_setting, self.set_setting, self.logger)
 
     # plugins
     def ids(self):

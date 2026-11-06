@@ -1,5 +1,6 @@
 import os
 import tempfile
+import threading
 
 from . import wasm
 from .constants import ABI_VERSION
@@ -10,15 +11,21 @@ PROBE = bytes.fromhex('0061736d010000000105016000017f030201000713010f6170735f616
 
 
 class WasmModule:
-    def __init__(self, path):
+    def __init__(self, path, bridge=None):
         self.engine = wasm.core.Runtime()
-        self.module = self.engine.instance_from_file(path, {})
+        self.lock = threading.RLock()
+        imports = {}
+        if bridge is not None:
+            bridge.bind(self)
+            imports['aps'] = bridge.imports()
+        self.module = self.engine.instance_from_file(path, imports)
 
     def has(self, name):
         return any(export.name == name for export in self.module.exps)
 
     def exec(self, name, args):
-        result = self.engine.invocate(self.module, name, args)
+        with self.lock:
+            result = self.engine.invocate(self.module, name, args)
         if len(result) == 0:
             return None
         if len(result) == 1:

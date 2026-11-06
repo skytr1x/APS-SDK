@@ -178,6 +178,40 @@ ABI 1 поддерживает только `HookStrategy::Default` и `HookStra
 
 Если хук вернул значение вне `0` и `1`, хост выдаёт `Unknown result from the APS hook`, оставшиеся плагины не вызываются, отправка не отменяется. Trap даёт такой же результат.
 
+## Мост SDK
+
+`export_plugin!` экспортирует `aps_bridge_version` со значением `1`. Хост проверяет его, если символ есть, и подключает импорты модуля `aps`. Старые плагины без bridge загружаются как раньше.
+
+```rust
+use aps_sdk::client::{get_selected_account, AccountClient};
+use aps_sdk::logger::Logger;
+use aps_sdk::{settings, ui};
+
+Logger::info("plugin started");
+
+let mut buf = [0u8; 64];
+let value = settings::get_or("api_key", "", &mut buf);
+settings::set("api_key", "new value");
+
+let client = AccountClient::new(account); // account from the hook
+client.send_text(123456789, "Hello");
+client.send_request("TL_account_updateStatus", r#"{"offline":true}"#);
+let selected = get_selected_account(); // explicit UI-account opt-in
+
+ui::post(on_ui_ready, 0);
+ui::show_info("Done");
+```
+
+| Модуль | Назначение |
+| --- | --- |
+| `logger::Logger` | `debug`, `info`, `warn`, `error`; тег `plugin.<id>` |
+| `settings` | `get`, `get_or`, `set`, `get_bool`, `set_bool`; значения строки |
+| `client::AccountClient` | `send_text`, `send_request`; аккаунт обязателен |
+| `client::get_selected_account` | явный выбор аккаунта из UI |
+| `ui` | `post(fn, delay_ms)`, `show_info`, `show_error`, `show_success` |
+
+Настройки хранятся с префиксом `aps.<id>.`, чтобы плагины не пересекались. `settings::get` читает в буфер вызывающего: сначала узнаётся размер, затем данные. Лог и UI уходят в `android_utils`, сообщения — в `client_utils`. Ответ `send_request` пока не возвращается в плагин; ошибка пишется в лог. Короткое имя `TL_...` раскрывается в `org.telegram.tgnet.TLRPC$TL_...`, полное имя Java-класса тоже принимается. JSON задаёт только плоские поля.
+
 ## Экспорты ABI 1
 
 `export_plugin!(MyPlugin)` создаёт следующие экспорты:
@@ -185,6 +219,8 @@ ABI 1 поддерживает только `HookStrategy::Default` и `HookStra
 | Символ | Сигнатура | Обязателен | Значение |
 | --- | --- | ---: | --- |
 | `aps_abi_version` | `() -> i32` | Да | Всегда `1` |
+| `aps_bridge_version` | `() -> i32` | Нет | `1` при сборке с мостом |
+| `aps_run_task` | `(i32) -> ()` | Нет | Выполняет задачу `ui::post` |
 | `aps_on_load` | `() -> i32` | Да | `0` — успех |
 | `aps_on_unload` | `() -> i32` | Да | Возврат игнорируется |
 | `aps_on_app_event` | `(i32) -> i32` | Нет | Возврат игнорируется |
@@ -192,9 +228,9 @@ ABI 1 поддерживает только `HookStrategy::Default` и `HookStra
 
 `aps_on_app_event` появился в SDK `0.3.0`. Старые модули без него загружаются, но события не получают.
 
-Хост создаёт экземпляр с пустым набором импортов. WASI, `std`, файловая система, сеть, время, случайные числа и Java/Android API недоступны; собирайте с `#![no_std]` и `panic = "abort"`.
+Хост создаёт экземпляр с импортами `aps` (см. «Мост SDK»). WASI, `std`, файловая система, сеть, время, случайные числа и Java/Android API напрямую недоступны; собирайте с `#![no_std]` и `panic = "abort"`.
 
-Экспорт `memory` создаёт компилятор, но ABI 1 не читает и не пишет память плагина. Строки, JSON и другие объекты через границу не передаются.
+Экспорт `memory` использует компилятор. Хост читает и пишет память только для строк моста: лог, настройки, текст сообщений и JSON запроса.
 
 ### Перенос с Python `BasePlugin`
 
@@ -203,16 +239,21 @@ ABI 1 поддерживает только `HookStrategy::Default` и `HookStra
 | `on_plugin_load`, `on_plugin_unload`, `on_app_event` | Одноимённые методы `BasePlugin` |
 | `on_send_message_hook(account, params)` | `on_send_message(account)` без `params` |
 | `HookStrategy.MODIFY`, `MODIFY_FINAL` | Только `pass()` и `cancel()` |
-| `create_settings`, `get_setting`, `set_setting`, `add_menu_item` | Не перенесены |
+| `create_settings`, `add_menu_item` | Не перенесены |
+| `get_setting`, `set_setting` | `settings::get`, `settings::get_or`, `settings::set` |
+| `self.logger` | `logger::Logger` |
+| `client_utils.send_text` | `AccountClient::send_text` |
+| `send_request` | `AccountClient::send_request` с JSON полей |
+| `run_on_ui_thread`, `BulletinHelper` | `ui::post`, `ui::show_*` |
 | `add_hook`, `pre_request_hook`, `post_request_hook`, `on_update_hook` | Не перенесены |
-| `self.client`, Java/UI, `logger` | Недоступны |
-
-ABI 1 не эмулирует Python-объекты. `Message`, `TL_request`, `Context` и другие типы плагину недоступны.
+| Java-объекты, `dynamic_proxy`, class proxy | Недоступны |
 
 ## Ограничения
 
 - Нет лимитов времени выполнения и памяти. Бесконечный цикл или утечка памяти могут зависнуть или завершить клиент.
-- Плагин видит только свой WASM-модуль и память; доступа к Java/Android API нет.
+- Плагин видит только свой WASM-модуль и память. Java-объекты, reflection и `dynamic_proxy` через мост пока не передаются.
+- `send_request` не возвращает ответ в плагин; ошибки только логируются. Вложенные TL-объекты в JSON не собираются.
+- `ui::post` принимает `fn()` без захвата; задачи с замыканиями появятся вместе с аллокатором.
 - Нет подписи или закреплённого хеша SDK. Установщик доверяет ветке `main` репозитория `skytr1x/APS-SDK`.
 - Хост написан на Python, лежит в архиве SDK и исполняется в клиенте с правами плагина. Доверие к ветке `main` означает доверие к исполняемому коду, а не только к исходникам.
 - Устанавливайте и включайте только доверенные плагины.
@@ -223,7 +264,8 @@ ABI 1 не эмулирует Python-объекты. `Message`, `TL_request`, `C
 | --- | --- | --- |
 | `The SDK runtime failed to load` | Пакет хоста не импортировался: повреждён файл или несовместимая версия Python | Переустановите SDK |
 | `Plugin failed to start` | `on_plugin_load` вернул не `0`, сработал trap или нет обязательного экспорта | Проверьте `on_plugin_load` и список экспортов |
-| `Unsupported ABI version` | `aps_abi_version` вернул не `1` | Пересоберите плагин с SDK `1.0` |
+| `Unsupported ABI version` | `aps_abi_version` или `aps_bridge_version` не совпал с хостом | Пересоберите плагин с SDK `1.0` |
+| `Unsupported ABI version` при импорте `aps.*` | Плагин собран с мостом, а хост старый | Обновите SDK |
 | `File name must be ID.apl...` | Неверное расширение или ID | Переименуйте файл по правилам выше |
 | `Invalid plugin metadata` | Секция `aps.meta` повреждена: неверная длина, кодировка или структура | Пересоберите плагин |
 | `Metadata ID does not match the file name` | Поле `id` не совпадает с именем файла | Укажите имя файла без расширения или уберите `id` |
@@ -238,4 +280,4 @@ ABI 1 не эмулирует Python-объекты. `Message`, `TL_request`, `C
 
 `Host(home, get_setting, set_setting, logger=None, loader=None)` хранит файлы в `<home>/plugins`, а флаги включения хранятся в настройках `aps_enabled_<ID>`. Хост импортируется целиком и выгружается при удалении или обновлении SDK, поэтому внутри пакета используются только относительные импорты.
 
-Основные модули: `host.py` (жизненный цикл и флаги), `runtime.py` (вызовы WASM), `metadata.py`, `store.py`, `engine.py` (обёртка pywasm), `events.py`, `errors.py`. `engine.check_engine(directory)` проверяет, что pywasm запускает пробный модуль. `HostError.key` хранит ключ локализации, APS превращает его в текст ошибки.
+Основные модули: `host.py` (жизненный цикл и флаги), `runtime.py` (вызовы WASM и проверка bridge), `bridge.py` (импорты `aps.*` и связь с Python SDK), `metadata.py`, `store.py`, `engine.py` (обёртка pywasm), `events.py`, `errors.py`. `engine.check_engine(directory)` проверяет, что pywasm запускает пробный модуль. `HostError.key` хранит ключ локализации, APS превращает его в текст ошибки.

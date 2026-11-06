@@ -6,6 +6,11 @@ import struct
 import typing
 
 
+def sign_extend(value, bits):
+    value &= (1 << bits) - 1
+    return value - (1 << bits) if value & (1 << (bits - 1)) else value
+
+
 class Bype:
     def __init__(self, kind: int, data: int) -> typing.Self:
         assert kind in [0x00, 0x01, 0x02]
@@ -2015,6 +2020,21 @@ class Machine:
                     a = self.stack.value.pop().into_u32()
                     b = ValInst.from_i64(a)
                     self.stack.value.append(b)
+                case opcode.i32_extend8_s:
+                    a = self.stack.value.pop().into_i32()
+                    self.stack.value.append(ValInst.from_i32(sign_extend(a, 8)))
+                case opcode.i32_extend16_s:
+                    a = self.stack.value.pop().into_i32()
+                    self.stack.value.append(ValInst.from_i32(sign_extend(a, 16)))
+                case opcode.i64_extend8_s:
+                    a = self.stack.value.pop().into_i64()
+                    self.stack.value.append(ValInst.from_i64(sign_extend(a, 8)))
+                case opcode.i64_extend16_s:
+                    a = self.stack.value.pop().into_i64()
+                    self.stack.value.append(ValInst.from_i64(sign_extend(a, 16)))
+                case opcode.i64_extend32_s:
+                    a = self.stack.value.pop().into_i64()
+                    self.stack.value.append(ValInst.from_i64(sign_extend(a, 32)))
                 case opcode.i64_trunc_f32_s:
                     a = self.stack.value.pop().into_f32()
                     b = ValInst.from_i64(int(a))

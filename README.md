@@ -4,4 +4,6 @@ APS SDK являеться рантаймом для Rust плагинов дл�
 
 Метаданные плагина задаются макросом `plugin_metadata!` и хранятся в секции `aps.meta` внутри `.apl`. Поля и правила описаны в [`docs.md`](docs.md).
 
+Слои SDK и граница с Python/Android описаны в [`docs/architecture.md`](docs/architecture.md).
+
 Подробнее узнать о плагине можно уже в репозитории [плагина](https://github.com/skytr1x/APS).

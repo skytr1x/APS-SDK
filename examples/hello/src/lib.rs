@@ -1,6 +1,7 @@
 #![no_std]
 use aps_sdk::base_plugin::{BasePlugin, HookResult};
-use aps_sdk::{export_plugin, plugin_metadata};
+use aps_sdk::logger::Logger;
+use aps_sdk::{export_plugin, plugin_metadata, settings};
 
 plugin_metadata! {
     id: "Hello",
@@ -16,7 +17,15 @@ plugin_metadata! {
 struct Example;
 
 impl BasePlugin for Example {
+    fn on_plugin_load() -> i32 {
+        Logger::info("Hello plugin loaded");
+        0
+    }
+
     fn on_send_message(_account: i32) -> HookResult {
+        if settings::get_bool("enabled", true) {
+            Logger::debug("outgoing message allowed");
+        }
         HookResult::pass()
     }
 }

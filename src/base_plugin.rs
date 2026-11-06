@@ -94,6 +94,16 @@ macro_rules! export_plugin {
         }
 
         #[no_mangle]
+        pub extern "C" fn aps_bridge_version() -> i32 {
+            $crate::bridge::BRIDGE_VERSION
+        }
+
+        #[no_mangle]
+        pub extern "C" fn aps_run_task(task: i32) {
+            $crate::ui::run_task(task)
+        }
+
+        #[no_mangle]
         pub extern "C" fn aps_on_load() -> i32 {
             <$plugin as $crate::base_plugin::BasePlugin>::on_plugin_load()
         }
